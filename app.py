@@ -12,6 +12,49 @@ def load_model_and_data():
     crop_data = pd.read_csv("crop_recommendation.csv")
     return model, crop_data
 
+def get_crop_insights(crop_name):
+    """Get detailed insights for a specific crop"""
+    crop_subset = crop_data[crop_data['label'] == crop_name]
+    
+    if crop_subset.empty:
+        return None
+    
+    insights = {
+        'name': crop_name,
+        'optimal_conditions': {
+            'N_range': f"{int(crop_subset['N'].min())} - {int(crop_subset['N'].max())}",
+            'P_range': f"{int(crop_subset['P'].min())} - {int(crop_subset['P'].max())}",
+            'K_range': f"{int(crop_subset['K'].min())} - {int(crop_subset['K'].max())}",
+            'temperature_range': f"{crop_subset['temperature'].min():.1f}°C - {crop_subset['temperature'].max():.1f}°C",
+            'humidity_range': f"{crop_subset['humidity'].min():.1f}% - {crop_subset['humidity'].max():.1f}%",
+            'ph_range': f"{crop_subset['ph'].min():.2f} - {crop_subset['ph'].max():.2f}",
+            'rainfall_range': f"{crop_subset['rainfall'].min():.1f}mm - {crop_subset['rainfall'].max():.1f}mm"
+        },
+        'avg_conditions': {
+            'N': int(crop_subset['N'].mean()),
+            'P': int(crop_subset['P'].mean()),
+            'K': int(crop_subset['K'].mean()),
+            'temperature': round(crop_subset['temperature'].mean(), 1),
+            'humidity': round(crop_subset['humidity'].mean(), 1),
+            'ph': round(crop_subset['ph'].mean(), 2),
+            'rainfall': round(crop_subset['rainfall'].mean(), 1)
+        }
+    }
+    
+    return insights
+
+def get_seasonal_recommendations(month):
+    """Get crop recommendations based on current month"""
+    # Simple seasonal logic - you can enhance this based on your data
+    if month in [12, 1, 2]:  # Winter
+        return ['wheat', 'barley', 'oats', 'peas']
+    elif month in [3, 4, 5]:  # Spring
+        return ['rice', 'corn', 'cotton', 'sugarcane']
+    elif month in [6, 7, 8]:  # Summer
+        return ['rice', 'cotton', 'sugarcane', 'maize']
+    else:  # Fall (Sep, Oct, Nov)
+        return ['maize', 'groundnut', 'mustard', 'gram']
+
 model, crop_data = load_model_and_data()
 
 # Page configuration
@@ -96,46 +139,3 @@ st.write(f"Total records: {len(crop_data)}")
 # Display sample data
 if st.checkbox("Show sample data"):
     st.dataframe(crop_data.head(10))
-
-def get_crop_insights(crop_name):
-    """Get detailed insights for a specific crop"""
-    crop_subset = crop_data[crop_data['label'] == crop_name]
-    
-    if crop_subset.empty:
-        return None
-    
-    insights = {
-        'name': crop_name,
-        'optimal_conditions': {
-            'N_range': f"{int(crop_subset['N'].min())} - {int(crop_subset['N'].max())}",
-            'P_range': f"{int(crop_subset['P'].min())} - {int(crop_subset['P'].max())}",
-            'K_range': f"{int(crop_subset['K'].min())} - {int(crop_subset['K'].max())}",
-            'temperature_range': f"{crop_subset['temperature'].min():.1f}°C - {crop_subset['temperature'].max():.1f}°C",
-            'humidity_range': f"{crop_subset['humidity'].min():.1f}% - {crop_subset['humidity'].max():.1f}%",
-            'ph_range': f"{crop_subset['ph'].min():.2f} - {crop_subset['ph'].max():.2f}",
-            'rainfall_range': f"{crop_subset['rainfall'].min():.1f}mm - {crop_subset['rainfall'].max():.1f}mm"
-        },
-        'avg_conditions': {
-            'N': int(crop_subset['N'].mean()),
-            'P': int(crop_subset['P'].mean()),
-            'K': int(crop_subset['K'].mean()),
-            'temperature': round(crop_subset['temperature'].mean(), 1),
-            'humidity': round(crop_subset['humidity'].mean(), 1),
-            'ph': round(crop_subset['ph'].mean(), 2),
-            'rainfall': round(crop_subset['rainfall'].mean(), 1)
-        }
-    }
-    
-    return insights
-
-def get_seasonal_recommendations(month):
-    """Get crop recommendations based on current month"""
-    # Simple seasonal logic - you can enhance this based on your data
-    if month in [12, 1, 2]:  # Winter
-        return ['wheat', 'barley', 'oats', 'peas']
-    elif month in [3, 4, 5]:  # Spring
-        return ['rice', 'corn', 'cotton', 'sugarcane']
-    elif month in [6, 7, 8]:  # Summer
-        return ['rice', 'cotton', 'sugarcane', 'maize']
-    else:  # Fall (Sep, Oct, Nov)
-        return ['maize', 'groundnut', 'mustard', 'gram']
