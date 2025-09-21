@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌾 Smart Crop Recommendation System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .monthly-recommendations {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .monthly-recommendations h2 {
+            color: white;
+        }
+
+        .recommendation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .recommendation-item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .recommendation-item i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .result-section {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .result-section h2 {
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .crop-result {
+            font-size: 3rem;
+            margin: 30px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .insight-card {
+            background: rgba(255,255,255,0.2);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            text-align: left;
+        }
+
+        .insight-card h4 {
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            text-align: center;
+            color: white;
+        }
+
+        .insight-card .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .insight-card .data-row:last-child {
+            border-bottom: none;
+        }
+
+        .insight-card .label {
+            font-weight: 600;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .insight-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 8px;
+        }
+
+        .input-summary {
+            background: rgba(255,255,255,0.15);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-summary h4 {
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+        }
+
+        .input-item {
+            text-align: center;
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .input-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .input-item .value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .input-item .label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .no-insights {
+            background: rgba(255,255,255,0.2);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .no-insights i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.7;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .recommendation-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-seedling"></i> Smart Crop Recommendation</h1>
+            <p>ML-powered crop suggestions based on soil and climate conditions</p>
+        </div>
+
+        <!-- Monthly Recommendations Card -->
+        <div class="card monthly-recommendations">
+            <h2><i class="fas fa-calendar-alt"></i> Best Crops This Month</h2>
+            <div id="monthly-recommendations" class="recommendation-grid">
+                <div class="recommendation-item">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div>Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Input Form Card -->
+            <div class="card">
+                <h2><i class="fas fa-edit"></i> Soil & Climate Data</h2>
+                <form id="cropForm">
+                    <div class="form-group">
+                        <label for="N">Nitrogen (N) Content</label>
+                        <input type="number" id="N" name="N" placeholder="e.g., 90" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="P">Phosphorus (P) Content</label>
+                        <input type="number" id="P" name="P" placeholder="e.g., 42" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="K">Potassium (K) Content</label>
+                        <input type="number" id="K" name="K" placeholder="e.g., 43" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="temperature">Temperature (°C)</label>
+                        <input type="number" step="0.1" id="temperature" name="temperature" placeholder="e.g., 20.9" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="humidity">Relative Humidity (%)</label>
+                        <input type="number" step="0.1" id="humidity" name="humidity" placeholder="e.g., 82.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ph">pH Value of Soil</label>
+                        <input type="number" step="0.1" id="ph" name="ph" placeholder="e.g., 6.5" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="rainfall">Rainfall (mm)</label>
+                        <input type="number" step="0.1" id="rainfall" name="rainfall" placeholder="e.g., 202.9" required>
+                    </div>
+                                         <button type="submit" class="btn">
+                         <i class="fas fa-magic"></i> Get Recommendation
+                     </button>
+                     <button type="button" class="btn" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); margin-top: 15px;" onclick="clearResults()">
+                         <i class="fas fa-refresh"></i> Clear & Start Over
+                     </button>
+                     <button type="button" class="btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); margin-top: 15px;" onclick="fillSampleData()">
+                         <i class="fas fa-flask"></i> Try Sample Data
+                     </button>
+                </form>
+            </div>
+
+            <!-- Information Card -->
+            <div class="card">
+                <h2><i class="fas fa-info-circle"></i> How It Works</h2>
+                <div style="line-height: 1.6;">
+                                         <p><strong>Our ML model analyzes:</strong></p>
+                     <ul style="margin: 15px 0; padding-left: 20px;">
+                         <li>Soil nutrients (N, P, K)</li>
+                         <li>Environmental conditions</li>
+                         <li>Climate patterns</li>
+                         <li>Seasonal factors</li>
+                     </ul>
+                     <p><strong>To provide:</strong></p>
+                     <ul style="margin: 15px 0; padding-left: 20px;">
+                         <li>Optimal crop recommendations</li>
+                         <li>Growing condition insights</li>
+                         <li>Seasonal suggestions</li>
+                         <li>Best practices guidance</li>
+                     </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="card result-section hidden">
+            <h2><i class="fas fa-star"></i> Your Crop Recommendation</h2>
+            <div id="cropResult" class="crop-result"></div>
+            
+            <div id="insightsSection" class="insights-grid"></div>
+            
+            <div id="inputSummary" class="input-summary">
+                <h4>Your Input Values</h4>
+                <div id="inputGrid" class="input-grid"></div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your data and finding the perfect crop...</p>
+        </div>
+    </div>
+
+    <script>
+        // Load monthly recommendations on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMonthlyRecommendations();
+        });
+
+        // Form submission
+        document.getElementById('cropForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitForm();
+        });
+
+        function loadMonthlyRecommendations() {
+            fetch('/api/monthly-recommendations')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('monthly-recommendations');
+                    container.innerHTML = '';
+                    
+                    data.recommendations.forEach(crop => {
+                        const item = document.createElement('div');
+                        item.className = 'recommendation-item';
+                        item.innerHTML = `
+                            <i class="fas fa-seedling"></i>
+                            <div>${crop.charAt(0).toUpperCase() + crop.slice(1)}</div>
+                        `;
+                        container.appendChild(item);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading monthly recommendations:', error);
+                });
+        }
+
+        function submitForm() {
+            const form = document.getElementById('cropForm');
+            const formData = new FormData(form);
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultsSection').classList.add('hidden');
+            
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display results with the JSON data
+                displayResults(data.crop, data.input_data, data.insights);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            })
+            .finally(() => {
+                document.getElementById('loading').style.display = 'none';
+            });
+        }
+
+        function displayResults(cropName, inputData, insights) {
+            // Display crop result with success message
+            document.getElementById('cropResult').innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <i class="fas fa-check-circle" style="color: #4ade80; margin-right: 15px;"></i>
+                    <span style="font-size: 1.2rem; opacity: 0.9;">Recommendation Generated Successfully!</span>
+                </div>
+                <i class="fas fa-seedling"></i> ${cropName}
+                <div style="margin-top: 15px; font-size: 1.1rem; opacity: 0.9;">
+                    This is the best crop for your soil and climate conditions
+                </div>
+            `;
+            
+            // Display input summary
+            displayInputSummary(inputData);
+            
+            // Display insights directly if available
+            if (insights) {
+                displayInsights(insights);
+            } else {
+                // Fallback to loading insights via API
+                loadCropInsights(cropName);
+            }
+            
+            // Show results section
+            document.getElementById('resultsSection').classList.remove('hidden');
+            
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function displayInputSummary(inputData) {
+            const inputGrid = document.getElementById('inputGrid');
+            inputGrid.innerHTML = '';
+            
+            const inputs = [
+                { key: 'N', label: 'Nitrogen' },
+                { key: 'P', label: 'Phosphorus' },
+                { key: 'K', label: 'Potassium' },
+                { key: 'temperature', label: 'Temperature' },
+                { key: 'humidity', label: 'Humidity' },
+                { key: 'ph', label: 'pH' },
+                { key: 'rainfall', label: 'Rainfall' }
+            ];
+            
+            inputs.forEach(input => {
+                const value = inputData[input.key];
+                const item = document.createElement('div');
+                item.className = 'input-item';
+                item.innerHTML = `
+                    <div class="value">${value}</div>
+                    <div class="label">${input.label}</div>
+                `;
+                inputGrid.appendChild(item);
+            });
+        }
+
+        function loadCropInsights(cropName) {
+            fetch(`/api/crop-insights/${cropName}`)
+                .then(response => response.json())
+                .then(insights => {
+                    if (insights) {
+                        displayInsights(insights);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading crop insights:', error);
+                });
+        }
+
+        function displayInsights(insights) {
+            const insightsSection = document.getElementById('insightsSection');
+            insightsSection.innerHTML = '';
+            
+            if (!insights) {
+                const noInsights = document.createElement('div');
+                noInsights.className = 'no-insights';
+                noInsights.innerHTML = `
+                    <i class="fas fa-info-circle"></i>
+                    <h4>No detailed insights available for this crop</h4>
+                    <p>Try selecting a different crop or check back later for more information.</p>
+                `;
+                insightsSection.appendChild(noInsights);
+                return;
+            }
+            
+            // Optimal conditions
+            const optimalCard = document.createElement('div');
+            optimalCard.className = 'insight-card';
+            optimalCard.innerHTML = `
+                <h4><i class="fas fa-chart-line"></i> Optimal Growing Conditions</h4>
+                <div class="data-row">
+                    <span class="label">Nitrogen (N):</span>
+                    <span class="insight-value">${insights.optimal_conditions.N_range}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Phosphorus (P):</span>
+                    <span class="insight-value">${insights.optimal_conditions.P_range}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Potassium (K):</span>
+                    <span class="insight-value">${insights.optimal_conditions.K_range}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Temperature:</span>
+                    <span class="insight-value">${insights.optimal_conditions.temperature_range}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Humidity:</span>
+                    <span class="insight-value">${insights.optimal_conditions.humidity_range}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">pH Level:</span>
+                    <span class="insight-value">${insights.optimal_conditions.ph_range}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Rainfall:</span>
+                    <span class="insight-value">${insights.optimal_conditions.rainfall_range}</span>
+                </div>
+            `;
+            insightsSection.appendChild(optimalCard);
+            
+            // Average conditions
+            const avgCard = document.createElement('div');
+            avgCard.className = 'insight-card';
+            avgCard.innerHTML = `
+                <h4><i class="fas fa-calculator"></i> Average Requirements</h4>
+                <div class="data-row">
+                    <span class="label">Nitrogen (N):</span>
+                    <span class="insight-value">${insights.avg_conditions.N}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Phosphorus (P):</span>
+                    <span class="insight-value">${insights.avg_conditions.P}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Potassium (K):</span>
+                    <span class="insight-value">${insights.avg_conditions.K}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Temperature:</span>
+                    <span class="insight-value">${insights.avg_conditions.temperature}°C</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Humidity:</span>
+                    <span class="insight-value">${insights.avg_conditions.humidity}%</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">pH Level:</span>
+                    <span class="insight-value">${insights.avg_conditions.ph}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Rainfall:</span>
+                    <span class="insight-value">${insights.avg_conditions.rainfall}mm</span>
+                </div>
+            `;
+            insightsSection.appendChild(avgCard);
+        }
+
+        function clearResults() {
+            // Clear form
+            document.getElementById('cropForm').reset();
+            
+            // Hide results section
+            document.getElementById('resultsSection').classList.add('hidden');
+            
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function fillSampleData() {
+            // Fill form with sample data for testing
+            document.getElementById('N').value = '90';
+            document.getElementById('P').value = '42';
+            document.getElementById('K').value = '43';
+            document.getElementById('temperature').value = '20.9';
+            document.getElementById('humidity').value = '82.0';
+            document.getElementById('ph').value = '6.5';
+            document.getElementById('rainfall').value = '202.9';
+            
+            // Show a helpful message
+            alert('Sample data filled! Click "Get Recommendation" to see the system in action.');
+        }
+    </script>
+</body>
+</html>
