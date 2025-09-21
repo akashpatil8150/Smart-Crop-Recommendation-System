@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+import streamlit as st
 import pickle
 import numpy as np
 import pandas as pd
@@ -6,62 +6,96 @@ from datetime import datetime
 import calendar
 
 # Load model and data
-model = pickle.load(open("crop.pkl", "rb"))
-crop_data = pd.read_csv("crop_recommendation.csv")
+@st.cache_data
+def load_model_and_data():
+    model = pickle.load(open("crop.pkl", "rb"))
+    crop_data = pd.read_csv("crop_recommendation.csv")
+    return model, crop_data
 
-app = Flask(__name__)
+model, crop_data = load_model_and_data()
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+# Page configuration
+st.set_page_config(
+    page_title="Smart Crop Recommendation System",
+    page_icon="🌱",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    if request.method == 'POST':
-        N = int(request.form['N'])
-        P = int(request.form['P'])
-        K = int(request.form['K'])
-        temperature = float(request.form['temperature'])
-        humidity = float(request.form['humidity'])
-        ph = float(request.form['ph'])
-        rainfall = float(request.form['rainfall'])
+# Main title
+st.title("🌱 Smart Crop Recommendation System")
+st.markdown("---")
 
-        # Prediction
-        features = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
-        prediction = model.predict(features)[0]
+# Sidebar for input parameters
+st.sidebar.header("📊 Soil & Weather Parameters")
 
-        # Get crop insights
-        crop_insights = get_crop_insights(prediction)
+# Input fields
+col1, col2 = st.sidebar.columns(2)
+
+with col1:
+    N = st.number_input("Nitrogen (N)", min_value=0, max_value=200, value=50, step=1)
+    P = st.number_input("Phosphorus (P)", min_value=0, max_value=200, value=50, step=1)
+    K = st.number_input("Potassium (K)", min_value=0, max_value=200, value=50, step=1)
+
+with col2:
+    temperature = st.number_input("Temperature (°C)", min_value=0.0, max_value=50.0, value=25.0, step=0.1)
+    humidity = st.number_input("Humidity (%)", min_value=0.0, max_value=100.0, value=50.0, step=0.1)
+    ph = st.number_input("pH Level", min_value=0.0, max_value=14.0, value=7.0, step=0.1)
+    rainfall = st.number_input("Rainfall (mm)", min_value=0.0, max_value=1000.0, value=100.0, step=1.0)
+
+# Prediction button
+if st.sidebar.button("🔮 Get Crop Recommendation", type="primary"):
+    # Prediction
+    features = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
+    prediction = model.predict(features)[0]
+    
+    # Get crop insights
+    crop_insights = get_crop_insights(prediction)
+    
+    # Display results
+    st.success(f"🎯 **Recommended Crop: {prediction.title()}**")
+    
+    if crop_insights:
+        st.subheader("📈 Crop Insights")
         
-        # Return JSON response for AJAX handling
-        return jsonify({
-            'crop': prediction,
-            'insights': crop_insights,
-            'input_data': {
-                'N': N, 'P': P, 'K': K,
-                'temperature': temperature,
-                'humidity': humidity,
-                'ph': ph, 'rainfall': rainfall
-            }
-        })
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**Optimal Conditions:**")
+            st.write(f"• Nitrogen: {crop_insights['optimal_conditions']['N_range']}")
+            st.write(f"• Phosphorus: {crop_insights['optimal_conditions']['P_range']}")
+            st.write(f"• Potassium: {crop_insights['optimal_conditions']['K_range']}")
+            st.write(f"• Temperature: {crop_insights['optimal_conditions']['temperature_range']}")
+        
+        with col2:
+            st.write(f"• Humidity: {crop_insights['optimal_conditions']['humidity_range']}")
+            st.write(f"• pH Level: {crop_insights['optimal_conditions']['ph_range']}")
+            st.write(f"• Rainfall: {crop_insights['optimal_conditions']['rainfall_range']}")
+        
+        st.markdown("**Average Conditions for this crop:**")
+        avg_conditions = crop_insights['avg_conditions']
+        st.write(f"• N: {avg_conditions['N']}, P: {avg_conditions['P']}, K: {avg_conditions['K']}")
+        st.write(f"• Temperature: {avg_conditions['temperature']}°C, Humidity: {avg_conditions['humidity']}%")
+        st.write(f"• pH: {avg_conditions['ph']}, Rainfall: {avg_conditions['rainfall']}mm")
 
-@app.route('/api/monthly-recommendations')
-def monthly_recommendations():
-    current_month = datetime.now().month
-    month_name = calendar.month_name[current_month]
-    
-    # Get seasonal recommendations based on current month
-    seasonal_crops = get_seasonal_recommendations(current_month)
-    
-    return jsonify({
-        'month': month_name,
-        'recommendations': seasonal_crops
-    })
+# Monthly recommendations section
+st.subheader("📅 Monthly Recommendations")
+current_month = datetime.now().month
+month_name = calendar.month_name[current_month]
+seasonal_crops = get_seasonal_recommendations(current_month)
 
-@app.route('/api/crop-insights/<crop_name>')
-def crop_insights(crop_name):
-    insights = get_crop_insights(crop_name)
-    return jsonify(insights)
+st.write(f"**Recommended crops for {month_name}:**")
+for i, crop in enumerate(seasonal_crops, 1):
+    st.write(f"{i}. {crop.title()}")
+
+# Data overview
+st.subheader("📊 Dataset Overview")
+st.write(f"Total crops in dataset: {len(crop_data['label'].unique())}")
+st.write(f"Total records: {len(crop_data)}")
+
+# Display sample data
+if st.checkbox("Show sample data"):
+    st.dataframe(crop_data.head(10))
 
 def get_crop_insights(crop_name):
     """Get detailed insights for a specific crop"""
@@ -105,7 +139,3 @@ def get_seasonal_recommendations(month):
         return ['rice', 'cotton', 'sugarcane', 'maize']
     else:  # Fall (Sep, Oct, Nov)
         return ['maize', 'groundnut', 'mustard', 'gram']
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
