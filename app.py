@@ -8,9 +8,20 @@ import calendar
 # Load model and data
 @st.cache_data
 def load_model_and_data():
-    model = pickle.load(open("crop.pkl", "rb"))
-    crop_data = pd.read_csv("crop_recommendation.csv")
-    return model, crop_data
+    try:
+        model = pickle.load(open("crop.pkl", "rb"))
+        crop_data = pd.read_csv("crop_recommendation.csv")
+        
+        # Verify the CSV has the expected columns
+        expected_columns = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall', 'label']
+        if not all(col in crop_data.columns for col in expected_columns):
+            st.error(f"CSV file is missing expected columns. Found: {crop_data.columns.tolist()}")
+            st.stop()
+        
+        return model, crop_data
+    except Exception as e:
+        st.error(f"Error loading data: {str(e)}")
+        st.stop()
 
 def get_crop_insights(crop_name):
     """Get detailed insights for a specific crop"""
