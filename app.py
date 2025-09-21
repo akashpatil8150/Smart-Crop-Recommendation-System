@@ -28,13 +28,32 @@ def get_crop_insights(crop_name):
     try:
         crop_subset = crop_data[crop_data['label'] == crop_name]
         
+        # Debug information
+        st.info(f"🔍 **Debug:** Found {len(crop_subset)} records for crop '{crop_name}'")
+        
         if crop_subset.empty:
             st.warning(f"No data found for crop: {crop_name}")
+            # Show available crops for debugging
+            available_crops = crop_data['label'].unique()[:10]
+            st.write(f"Available crops (first 10): {list(available_crops)}")
             return None
         
         # Ensure we have data before calculating ranges
         if len(crop_subset) == 0:
             st.warning(f"No data available for crop: {crop_name}")
+            return None
+        
+        # Ensure numeric columns are properly converted
+        numeric_cols = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']
+        for col in numeric_cols:
+            if col in crop_subset.columns:
+                crop_subset[col] = pd.to_numeric(crop_subset[col], errors='coerce')
+        
+        # Remove any rows with NaN values after conversion
+        crop_subset = crop_subset.dropna(subset=numeric_cols)
+        
+        if crop_subset.empty:
+            st.warning(f"No valid numeric data found for crop: {crop_name}")
             return None
         
         insights = {
